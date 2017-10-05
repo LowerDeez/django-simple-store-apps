@@ -1,0 +1,37 @@
+<!--Template to display all products-->
+{% extends "base.html" %}
+{% load thumbnail %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            {% for object in object_list %}
+                <div class="col-6 col-md-4">
+                    <a href="{% url 'products:detail' object.slug %}">
+                        {% if object.image %}
+                            <img class="b-lazy img-responsive full-w"
+                                src="{% thumbnail object.image 360x480 %}"
+                                alt="{{ object.name }}">
+                        {% endif %}
+                        <h2>{{ object.name }}</h2>
+                        <span class="product-list__item__price">${{ object.price }}</span>
+                    </a>
+
+                    <!--Add to cart form-->
+                    <form method="post" action="{% url 'cart:add' object.pk %}" class="form-group">
+                        {% csrf_token %}
+                        <div>
+                            {{ form.quantity.errors }}
+                            <p>Quantity:</p>
+                            {{ form.quantity }}
+                        </div>
+                        <button type="submit" class="btn btn-dark">
+                            <i class="fa fa-shopping-bag" aria-hidden="true"></i> &nbsp;Add to cart
+                        </button>
+                    </form>
+
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

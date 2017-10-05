@@ -1,0 +1,6 @@
+<!--Template to display cart items count-->
+<a href="{% url 'cart:index' %}">
+    <span class="visible-xs-inline">Shopping bag</span>
+    <i class="fa fa-shopping-bag" aria-hidden="true"></i>
+    <span class="bag-count"> {{ cart_items_total_qty }}</span>
+</a>

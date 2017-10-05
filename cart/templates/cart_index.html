@@ -1,0 +1,191 @@
+<!--Template to display all cart items-->
+{% extends "base.html" %}
+
+{% load thumbnail %}
+
+{% block content %}
+
+    {% if cart_items %}
+
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h1>Shopping Cart</h1>
+
+                    <table id="cart" class="table table-hover table-condensed">
+
+                        <thead>
+                            <tr>
+                                <th style="width:30%">Product</th>
+                                <th style="width:10%">Price</th>
+                                <th style="width:8%">Quantity</th>
+                                <th style="width:22%" class="text-center">Subtotal</th>
+                                <th style="width:10%"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for cart_item in cart_items %}
+                                <tr>
+                                    <td data-th="Product">
+                                        <div class="row">
+                                            <!--Product image-->
+                                            <div class="col-sm-4">
+                                                <a href="{% url 'products:detail' cart_item.product.slug %}">
+                                                    <img class="img-responsive"
+                                                         src="{% thumbnail cart_item.product.image 100x100 crop %}"
+                                                         alt="">
+                                                </a>
+                                            </div>
+                                            <!--Product name and description-->
+                                            <div class="col-sm-8">
+                                                <h4 class="nomargin">{{ cart_item.product.name }}</h4>
+                                                <p>{{ cart_item.product.perex }}</p>
+                                            </div>
+
+                                        </div>
+                                    </td>
+
+                                    <td data-th="Price" id="product_price-{{ cart_item.id }}">
+                                        {{ cart_item.product.price }}
+                                    </td>
+
+                                    <td data-th="Quantity">
+                                        <form action="{% url 'cart:update' cart_item.id %}"
+                                              method="post" class="form-group form-quantity">
+                                            {% csrf_token %}
+                                            <input class="form-control quantity-input"
+                                                   id="{{ cart_item.id }}"
+                                                   type="number"
+                                                   name="cart_item_quantity" min="1"
+                                                   value="{{ cart_item.quantity }}">
+                                            <button type="submit" class="btn btn-info btn-sm">
+                                                <i class="fa fa-refresh"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+
+                                    <td data-th="Subtotal"
+                                        class="text-center total-price"
+                                        id="total_price-{{ cart_item.id }}">
+                                        {{ cart_item.total_price }}
+                                    </td>
+
+                                    <td class="actions" data-th="">
+                                        <form action="{% url 'cart:remove' cart_item.product.id %}" method="post">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fa fa-trash-o"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+
+                        <tfoot>
+                            <tr>
+                                <td><a href="/" class="btn btn-dark">Continue Shopping</a></td>
+                                <td colspan="2" class="hidden-xs"></td>
+                                <td class="hidden-xs text-center">
+                                    Total:
+                                    <strong id="subtotal_price">
+                                        {{ cart.price_subtotal }}
+                                    </strong>
+                                </td>
+                                <td>
+                                  {#  <a href="{% url 'checkout:index' %}" class="btn btn-primary btn-block">Checkout</a> #}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h2>Shopping Cart</h2>
+                    <p> Your Shopping Cart is empty </p>
+                    <a href="{% url 'products:index' %}" class="btn btn-dark">Go Shopping!</a>
+                </div>
+            </div>
+        </div>
+
+  {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Cross Site Request Forgery protection~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Cross Site Request Forgery protection~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</script>
+<!--Ajax part for updating cart item's product quantity and total + subtotal prices without reloading page-->
+<script>
+    $('.quantity-input').bind('keyup mouseup', function(event){ // use class selector for quantity input,
+        // because with id selector it not working for second and further inputs
+        var qty = $(this).val();
+        var id = $(this).attr('id');
+        data = {
+            cart_item_quantity: qty,
+            pk: id
+        };
+        var url = $('.form-quantity').attr('action');
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: data,
+            success: function(data) {
+                console.log('!!!' + data);
+                var product_total_price = (qty*Number($('#product_price-'+id).text())).toFixed(2);
+                $('#total_price-'+id).text(product_total_price);
+
+                var subtotal = 0;
+                $('.total-price').each(function () {
+                    subtotal += Number($(this).text());
+                });
+                $("#subtotal_price").text(subtotal.toFixed(2));
+            },
+            error: function (data) {
+                console.log('error')
+
+            }
+        })
+    });
+</script>
+{% endblock %}
