@@ -64,7 +64,8 @@ class ProductForm(forms.ModelForm):
         for attr in self.product_attributes:
             value = self.cleaned_data.pop(attr.get_formfield_name())
             if isinstance(value, AttributeChoiceValue):
-                attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                # attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                attributes[smart_text(attr.slug)] = smart_text(value)
             else:
                 attributes[smart_text(attr.pk)] = value
             # attributes[attr.id] = attr.values.all()
@@ -188,7 +189,6 @@ class ProductVariantAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'product':
-            print(kwargs)
             kwargs['initial'] = request.GET.get('id')
         return super().formfield_for_foreignkey(
             db_field, request, **kwargs
