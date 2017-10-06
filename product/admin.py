@@ -158,7 +158,8 @@ class VariantAttributeForm(forms.ModelForm):
             for attr in self.available_attrs:
                 value = self.cleaned_data.pop(attr.get_formfield_name())
                 if isinstance(value, AttributeChoiceValue):
-                    attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                    # attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                    attributes[smart_text(attr.slug)] = smart_text(value)
                 else:
                     attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
@@ -194,6 +195,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
         )
 
     def save_model(self, request, obj, form, change):
+        print(ProductVariant.objects.filter(attributes=obj.attributes))
         if not obj.id:
             obj.product = self.product.first()
             obj.save()
@@ -210,6 +212,7 @@ class ProductClassAdmin(admin.ModelAdmin):
 
 
 class AttributeChoiceValueAdminInline(admin.TabularInline):
+    fields = [f.name for f in AttributeChoiceValue._meta.fields]
     model = AttributeChoiceValue
 
 
