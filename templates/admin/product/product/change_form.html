@@ -16,9 +16,16 @@
 {% block after_field_sets %}
     <fieldset class="module aligned ">
         {% for attribute_field in adminform.form.iter_attribute_fields %}
+            {% if attribute_field.errors %}
+                <ul class="errorlist">
+                    {% for error in attribute_field.errors %}
+                       <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             <div class="form-row">
                 <div>
-                    <label for="{{ attribute_field.id }}">
+                    <label class="required" for="{{ attribute_field.id }}">
                         {{ attribute_field.label }}
                     </label>
                     {{ attribute_field }}

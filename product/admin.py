@@ -168,7 +168,7 @@ class VariantAttributeForm(forms.ModelForm):
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
     inlines = [StockAdminInline, VariantImageAdminInline]
-    list_display = ['name', 'product']
+    list_display = ['sku', 'name', 'product']
     form = VariantAttributeForm
 
     def get_form(self, request, obj=None, **kwargs):
@@ -181,11 +181,14 @@ class ProductVariantAdmin(admin.ModelAdmin):
         return super().get_form(request, obj, **kwargs)
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
-        context['adminform'].form.fields['product'].queryset = Product.objects.filter(id=request.GET.get('id'))
+        if not change:
+            self.product = Product.objects.filter(id=request.GET.get('id'))
+            context['adminform'].form.fields['product'].queryset = self.product
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'product':
+            print(kwargs)
             kwargs['initial'] = request.GET.get('id')
         return super().formfield_for_foreignkey(
             db_field, request, **kwargs
@@ -193,12 +196,13 @@ class ProductVariantAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not obj.id:
+            obj.product = self.product.first()
             obj.save()
             obj.sku = obj.id
         return super().save_model(request, obj, form, change)
 
     def response_add(self, request, obj, post_url_continue=None):
-        return redirect('/admin/product/productvariant/{}/change'.format(obj.id))
+        return redirect('/admin/product/productvariant/{}/change/?id={}'.format(obj.id, request.GET.get('id')))
 
 
 @admin.register(ProductClass)
