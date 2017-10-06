@@ -4,8 +4,6 @@ from .models import *
 from django.forms.models import ModelChoiceIterator
 from django.utils.encoding import smart_text
 from django.shortcuts import redirect
-from django.core.urlresolvers import resolve
-from django.utils.functional import curry
 
 
 @admin.register(Category)
@@ -13,65 +11,10 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
 
 
-class VariantAttributeForm(forms.ModelForm):
-    class Meta:
-        model = ProductVariant
-        fields = []
-
-    def __init__(self, *args, **kwargs):
-        super(VariantAttributeForm, self).__init__(*args, **kwargs)
-        attrs = self.instance.product.product_class.variant_attributes.all()
-        self.available_attrs = attrs.prefetch_related('values')
-        for attr in self.available_attrs:
-            field_defaults = {
-                'label': attr.name,
-                'required': True,
-                'initial': self.instance.get_attribute(attr.pk)}
-            if attr.has_values():
-                field = CachingModelChoiceField(
-                    queryset=attr.values.all(), **field_defaults)
-            else:
-                field = forms.CharField(**field_defaults)
-            self.fields[attr.get_formfield_name()] = field
-
-    def save(self, commit=True):
-        attributes = {}
-        for attr in self.available_attrs:
-            value = self.cleaned_data.pop(attr.get_formfield_name())
-            if isinstance(value, AttributeChoiceValue):
-                attributes[smart_text(attr.pk)] = smart_text(value.pk)
-            else:
-                attributes[smart_text(attr.pk)] = value
-        self.instance.attributes = attributes
-        return super(VariantAttributeForm, self).save(commit=commit)
-
-
 class ProductVariantAdminInline(admin.TabularInline):
     extra = 0
     model = ProductVariant
-    # form = VariantAttributeForm
-    #
-    # def get_parent_object_from_request(self, request):
-    #     """
-    #     Returns the parent object from the request or None.
-    #
-    #     Note that this only works for Inlines, because the `parent_model`
-    #     is not available in the regular admin.ModelAdmin as an attribute.
-    #     """
-    #     resolved = resolve(request.path_info)
-    #     if resolved.args:
-    #         return self.parent_model.objects.get(pk=resolved.args[0])
-    #     return None
-    #
-    # def get_formset(self, request, obj=None, **kwargs):
-    #     initial = []
-    #     if request.method == "GET":
-    #         initial.append({
-    #             'product': self.get_parent_object_from_request(request),
-    #         })
-    #     formset = super().get_formset(request, obj, **kwargs)
-    #     formset.__init__ = curry(formset.__init__, initial=initial)
-    #     return formset
+    fields = ('sku', 'name', 'price_override')
 
 
 class ProductImageAdminInline(admin.TabularInline):
@@ -182,9 +125,80 @@ class VariantImageAdminInline(admin.TabularInline):
     model = VariantImage
 
 
+class VariantAttributeForm(forms.ModelForm):
+    class Meta:
+        model = ProductVariant
+        exclude = ['attributes']
+
+    def __init__(self, *args, **kwargs):
+        super(VariantAttributeForm, self).__init__(*args, **kwargs)
+        if self.instance.product_id:
+            attrs = self.instance.product.product_class.variant_attributes.all()
+            self.available_attrs = attrs.prefetch_related('values')
+            for attr in self.available_attrs:
+                field_defaults = {
+                    'label': attr.name,
+                    'required': True,
+                    'initial': self.instance.get_attribute(attr.pk)}
+                if attr.has_values():
+                    field = CachingModelChoiceField(
+                        queryset=attr.values.all(), **field_defaults)
+                else:
+                    field = forms.CharField(**field_defaults)
+                self.fields[attr.get_formfield_name()] = field
+
+    def iter_attribute_fields(self):
+        if getattr(self, 'available_attrs', None):
+            for attr in self.available_attrs:
+                yield self[attr.get_formfield_name()]
+
+    def save(self, commit=True):
+        attributes = {}
+        if getattr(self, 'available_attrs', None):
+            for attr in self.available_attrs:
+                value = self.cleaned_data.pop(attr.get_formfield_name())
+                if isinstance(value, AttributeChoiceValue):
+                    attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                else:
+                    attributes[smart_text(attr.pk)] = value
+        self.instance.attributes = attributes
+        return super(VariantAttributeForm, self).save(commit=commit)
+
+
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
     inlines = [StockAdminInline, VariantImageAdminInline]
+    list_display = ['name', 'product']
+    form = VariantAttributeForm
+
+    def get_form(self, request, obj=None, **kwargs):
+        # Proper kwargs are form, fields, exclude, formfield_callback
+        if not obj:  # obj is None, so this is an add page
+            kwargs['fields'] = ['product', ]
+            self.inlines = []
+        else:
+            self.inlines = [StockAdminInline, VariantImageAdminInline]
+        return super().get_form(request, obj, **kwargs)
+
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        context['adminform'].form.fields['product'].queryset = Product.objects.filter(id=request.GET.get('id'))
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'product':
+            kwargs['initial'] = request.GET.get('id')
+        return super().formfield_for_foreignkey(
+            db_field, request, **kwargs
+        )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.id:
+            obj.save()
+            obj.sku = obj.id
+        return super().save_model(request, obj, form, change)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        return redirect('/admin/product/productvariant/{}/change'.format(obj.id))
 
 
 @admin.register(ProductClass)
