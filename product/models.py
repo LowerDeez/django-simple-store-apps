@@ -322,6 +322,22 @@ class ProductVariant(models.Model, Item):
             return stock.cost_price
 
 
+from django.db.models.signals import post_save
+
+
+def product_save_receiver(sender, instance, created, **kwargs):
+    product = instance
+    variations = product.variants.all()
+    if variations.count() == 0:
+        new_var = ProductVariant()
+        new_var.product = product
+        new_var.name = "Default"
+        new_var.price = product.price
+        new_var.save()
+
+post_save.connect(product_save_receiver, sender=Product)
+
+
 @python_2_unicode_compatible
 class StockLocation(models.Model):
     name = models.CharField(

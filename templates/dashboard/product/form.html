@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="tab-content" id="details">
+    <div class="row">
+      <div class="col-md-12 l9">
+        <form method="post" class="card" id="form-product" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {{ product.product_class }}
+            </span>
+            <div class="row">
+              <div class="col-md-6" >
+                <div class="row">
+                  {{ product_form.name }}
+                </div>
+                {% for attribute_field in product_form.iter_attribute_fields %}
+                  <div class="row">
+                    {{ attribute_field }}
+                  </div>
+                {% endfor %}
+                <div class="row">
+                  {{ product_form.description }}
+                </div>
+              </div>
+              <div class="col s12 l4">
+                <div class="row">
+                  {{ product_form.price }}
+                </div>
+                {% if not product.product_class.has_variants %}
+                  <div class="row">
+                    {{ variant_form.sku }}
+                  </div>
+                {% endif %}
+                <div class="row">
+                  {{ product_form.categories }}
+                </div>
+                <div class="row">
+                  {{ product_form.available_on }}
+                </div>
+                <div class="row">
+                  {{ product_form.is_featured }}
+                </div>
+                <div class="row">
+                  {{ product_form.is_published }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="col m12 l3 help-box"></div>
+    </div>
+  </div>
+{% endblock %}
