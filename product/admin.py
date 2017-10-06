@@ -68,7 +68,6 @@ class ProductForm(forms.ModelForm):
                 attributes[smart_text(attr.slug)] = smart_text(value)
             else:
                 attributes[smart_text(attr.pk)] = value
-            # attributes[attr.id] = attr.values.all()
         self.instance.attributes = attributes
         instance = super(ProductForm, self).save(commit=commit)
         return instance
