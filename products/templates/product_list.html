@@ -18,17 +18,7 @@
                     </a>
 
                     <!--Add to cart form-->
-                    <form method="post" action="{% url 'cart:add' object.pk %}" class="form-group">
-                        {% csrf_token %}
-                        <div>
-                            {{ form.quantity.errors }}
-                            <p>Quantity:</p>
-                            {{ form.quantity }}
-                        </div>
-                        <button type="submit" class="btn btn-dark">
-                            <i class="fa fa-shopping-bag" aria-hidden="true"></i> &nbsp;Add to cart
-                        </button>
-                    </form>
+                    {% include "add_to_cart_form.html" %}
 
                 </div>
             {% endfor %}

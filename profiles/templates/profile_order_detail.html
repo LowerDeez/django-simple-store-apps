@@ -24,7 +24,7 @@
                     {% for item in order.items.all %}
                         <tr>
                             <td>
-                                <!--<a href="{% url 'products:detail' item.product.slug %}">-->
+                                <a href="{% url 'products:detail' item.product.slug %}">
                                 <img class="img-responsive"
                                      src="{% thumbnail item.product.image 50x50 crop %}"
                                      alt="{{ item.product.name }}"/>

@@ -8,7 +8,7 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import FormView, UpdateView
 
 from cart.utils import get_cart
-# from checkout.models.order import Order
+from checkout.models.order import Order
 from .forms import RegistrationForm, LoginForm
 from .models import Profile
 
@@ -130,18 +130,18 @@ class UpdateProfileForm(LoginRequiredMixin, UpdateView):
 
 
 class ProfileOrdersView(LoginRequiredMixin, ListView):
-    model = Profile #Order
+    model = Order
     template_name = 'profile_orders.html'
     login_url = reverse_lazy('profiles:login')
 
     def get_context_data(self, **kwargs):
         context = super(ProfileOrdersView, self).get_context_data(**kwargs)
-        # context['orders'] = Order.objects.filter(user=self.request.user.id)
+        context['orders'] = Order.objects.filter(user=self.request.user.id)
 
         return context
 
 
 class ProfileOrderDetailView(LoginRequiredMixin, DetailView):
-    model = Profile #Order
+    model = Order
     template_name = 'profile_order_detail.html'
     login_url = reverse_lazy('profiles:login')

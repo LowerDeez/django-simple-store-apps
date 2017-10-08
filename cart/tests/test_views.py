@@ -6,11 +6,11 @@ from django.contrib.messages import get_messages
 from django.core.urlresolvers import reverse
 from django.test import TestCase, RequestFactory
 
-from simplestore.cart.models import Cart, CartItem
-from simplestore.cart.templatetags.cart_tags import cart_counter
-from simplestore.cart.utils import get_cart
-from simplestore.products.models.product import Product
-from simplestore.profiles.models import Profile
+from cart.models import Cart, CartItem
+from cart.templatetags.cart_tags import cart_counter
+from cart.utils import get_cart
+from products.models.product import Product
+from profiles.models import Profile
 
 
 class CartViewsTests(TestCase):
