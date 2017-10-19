@@ -22,7 +22,7 @@ ORDER_STATUS_CHOICES = (
 class Order(models.Model):
     uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
     slug = models.UUIDField(default=uuid4, unique=True, editable=False)
-    cart = models.ForeignKey(Cart, on_delete=models.DO_NOTHING)
+    # cart = models.ForeignKey(Cart, on_delete=models.DO_NOTHING)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
     full_name = models.CharField(max_length=120)
     email = models.EmailField()
@@ -40,21 +40,30 @@ class Order(models.Model):
         uuid = str(self.uuid).split('-')
         return "{0}-{1}".format(uuid[0], uuid[1])
 
-    def get_cart_items(self):
-        return self.cart.items.all()
+    # def get_cart_items(self):
+    #     return self.cart.items.all()
 
     def get_absolute_url(self):
         return reverse('checkout:order-confirmation', kwargs={'slug': str(self.slug)})
 
-    def create_order_items(self):
-        cart_items = self.cart.items.all()
-        for item in cart_items:
-            OrderItem.objects.create(order=self, product=item.product, price=item.product.price,
-                quantity=item.quantity)
+    def create_order_items(self, cart=None):
+        if cart:
+            cart_items = cart.items.all()
+            for item in cart_items:
+                order = OrderItem.objects.create(order=self,
+                                                 product=item.product,
+                                                 price=item.product.price,
+                                                 quantity=item.quantity)
+                order.total_price = order.get_total_price()
+                order.save()
+            try:
+                cart.delete()
+            except Exception as e:
+                print(e)
 
     def get_serialized_items(self):
         order_items = []
-        for item in self.cart.items.all():
+        for item in self.items.all():
             data = {
                 'name': item.product.name,
                 'sku': item.product.sku,

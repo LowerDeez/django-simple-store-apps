@@ -5,6 +5,9 @@ from products.models.product import Product
 
 
 class Cart(models.Model):
+    """
+    Cart Model, which stores user, session key and cart items
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
     session_key = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
@@ -35,7 +38,7 @@ class CartItem(models.Model):
     product, product quantity, total price (product price * product quantity)
     """
     cart = models.ForeignKey(Cart, null=True, related_name='items', blank=True)
-    product = models.ForeignKey(Product, related_name='products', on_delete=models.DO_NOTHING)
+    product = models.ForeignKey(Product, related_name='products', on_delete=models.CASCADE)
     date_added = models.DateTimeField(auto_now_add=True)
     quantity = models.PositiveIntegerField(default=1)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)

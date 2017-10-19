@@ -10,7 +10,11 @@ urlpatterns = [
     url(r'^checkout/', include('checkout.urls', namespace='checkout')),
     url(r'^profiles/', include('profiles.urls', namespace='profiles')),
     url(r'^product/', include('product.urls', namespace='product')),
+
+    url(r'^search/', include("search.urls", namespace='search')),
+
     url(r'^', include('products.urls', namespace='products')),
+
 ]
 
 if settings.DEBUG:

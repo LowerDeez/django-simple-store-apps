@@ -5,8 +5,8 @@ from .models import Cart, CartItem
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 0
-    exclude = ('product',)
-    readonly_fields = ('quantity',)
+    # exclude = ('product',)
+    readonly_fields = ('product', 'quantity',)
 
 
 class CartAdmin(admin.ModelAdmin):

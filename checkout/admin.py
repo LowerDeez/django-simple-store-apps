@@ -17,7 +17,6 @@ class AddressAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     model = Order
     readonly_fields = (
-        'cart',
         'full_name',
         'user',
         'email',

@@ -48,14 +48,14 @@ class CheckoutOrderCreateView(TemplateView):
         order = forms['customer_order_form'].save(commit=False)
         shipping_address = forms['shipping_address_form'].save()
 
-        order.cart = self.cart
+        # order.cart = self.cart
         order.shipping_address = shipping_address
 
         if self.request.user.is_authenticated():
             order.user = self.request.user
 
         order.save()
-        order.create_order_items()
+        order.create_order_items(self.cart)
 
         return order
 

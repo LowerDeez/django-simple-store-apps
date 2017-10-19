@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class='row  mb-3'>
+    {% if query %}
+        <div class='col-12 col-md-6 mx-auto py-5' >
+            Results for <b>{{ query }}</b>
+            <hr/>
+        </div>
+    {% else %}
+        <div class='col-12 col-md-6 mx-auto py-5'>
+            {% include 'search/snippets/search-form.html' %}
+        </div>
+        <div class='col-12'>
+            <hr>
+        </div>
+    {% endif %}
+</div>
+
+<div class='row'>
+    {% for obj in object_list %}
+        <div class='col-12 col-md-6'>
+            <div class="card" style="width: 20rem;">
+                <div class="card-body">
+                    <h4 class="card-title">{{ obj.name }}</h4>
+                    <p class="card-text">{{ obj.content|linebreaks|truncatewords:14 }}</p>
+                    <a href="{{ obj.get_absolute_url }}" class="btn btn-primary">View</a>
+                </div>
+</div>
+            {% if forloop.counter|divisibleby:3 %}
+        </div>
+</div>
+<div class='row'>
+    <div class='col-12'>
+        <hr/>
+    </div>
+        {% elif forloop.counter|divisibleby:2 %}
+</div> </div><div class='row'><div class='col-12'><hr/></div>
+        {% else %}
+         </div>
+        {% endif %}
+
+
+    {% endfor %}
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+  $(document).ready(function(){
+      // Auto Search
+      var searchForm = $(".search-form")
+      var searchInput = searchForm.find("[name='q']") // input name='q'
+      var typingTimer;
+      var typingInterval = 500 // .5 seconds
+      var searchBtn = searchForm.find("[type='submit']")
+      searchInput.keyup(function(event){
+        // key released
+        clearTimeout(typingTimer)
+        typingTimer = setTimeout(perfomSearch, typingInterval)
+      })
+      searchInput.keydown(function(event){
+        // key pressed
+        clearTimeout(typingTimer)
+      })
+      function displaySearching(){
+        searchBtn.addClass("disabled")
+        searchBtn.html("<i class='fa fa-spin fa-spinner'></i> Searching...")
+      }
+      function perfomSearch(){
+        displaySearching()
+        var query = searchInput.val()
+        setTimeout(function(){
+          window.location.href='/search/?q=' + query
+        }, 1000)
+
+      }
+  })
+</script>
+{% endblock %}

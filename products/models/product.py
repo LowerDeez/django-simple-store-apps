@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models import Q
 from filer.fields.image import FilerImageField
 
 from .category import Category
@@ -9,6 +10,18 @@ class ProductQuerySet(models.QuerySet):
     def active(self):
         return self.filter(is_active=True)
 
+    def featured(self):
+        return self.filter(is_active=True, is_featured=True)
+
+    def search(self, query):
+        lookups = (Q(name__icontains=query) |
+                   Q(sku__icontains=query) |
+                   Q(content__icontains=query) |
+                   Q(category__name__icontains=query) |
+                   Q(category__description__icontains=query)
+        )
+        return self.filter(lookups).distinct()
+
 
 class ProductManager(models.Manager):
     def get_queryset(self):
@@ -16,6 +29,12 @@ class ProductManager(models.Manager):
 
     def all(self):
         return self.get_queryset().active()
+
+    def featured(self):  # Product.objects.featured()
+        return self.get_queryset().featured()
+
+    def search(self, query):
+        return self.get_queryset().active().search(query)
 
 
 class Product(models.Model):

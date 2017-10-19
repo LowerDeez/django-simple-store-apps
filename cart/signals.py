@@ -29,4 +29,12 @@ def cart_item_post_delete_receiver(sender, instance, **kwargs):
     """
     Updating subtotal price of Cart, when user deleting CartItem
     """
-    instance.cart.update_subtotal()
+    try:
+        instance.cart.update_subtotal()
+    except Exception as e:
+        print(e)
+        pass
+    cart = instance.cart
+    cart_items = CartItem.objects.filter(cart=cart)
+    if not cart_items:
+        cart.delete()
