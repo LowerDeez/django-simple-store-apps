@@ -44,7 +44,8 @@ class _AttributeBaseForm(object):
                 else:
                     field = forms.CharField(**field_defaults)
                 self.fields[attribute.get_formfield_name()] = field
-                # add every attribute field name to the set to use it in ModelAdmin get_fieldset method to override fieldset    
+                # add every attribute field name to the set to use it in ModelAdmin get_fieldset method
+                # to override fieldset
                 self.attribute_fields.add(attribute.get_formfield_name()) 
 
     def iter_attribute_fields(self):
@@ -54,14 +55,15 @@ class _AttributeBaseForm(object):
                 yield self[attr.get_formfield_name()]
 
     def save(self, commit=True):
-        # get cleaned data for each attribute field, and create dict key-value pair for attributes dict to pass it to product HStore attribute field
+        # get cleaned data for each attribute field, and create dict key-value pair
+        # for attributes dict to pass it to product HStore attribute field
         attributes = {}
         if getattr(self, 'available_attrs', None):
             for attr in self.available_attrs:
                 value = self.cleaned_data.pop(attr.get_formfield_name())
                 if isinstance(value, AttributeChoiceValue):
-                    # attributes[smart_text(attr.pk)] = smart_text(value.pk)
-                    attributes[smart_text(attr.slug)] = smart_text(value)
+                    attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                    # attributes[smart_text(attr.slug)] = smart_text(value.slug)
                 else:
                     attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes

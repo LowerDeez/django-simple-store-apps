@@ -23,7 +23,7 @@ from versatileimagefield.fields import VersatileImageField, PPOIField
 
 # from ..discount.models import calculate_discounted_price
 # from ..search import index
-# from .utils import get_attributes_display_map
+from .utils import *
 
 
 @python_2_unicode_compatible
@@ -35,7 +35,9 @@ class Category(MPTTModel):
     description = models.TextField(
         pgettext_lazy('Category field', 'description'), blank=True)
     parent = models.ForeignKey(
-        'self', null=True, blank=True, related_name='children',
+        'self',
+        null=True, blank=True,
+        related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'))
     hidden = models.BooleanField(
         pgettext_lazy('Category field', 'hidden'), default=False)
@@ -80,11 +82,15 @@ class ProductClass(models.Model):
     has_variants = models.BooleanField(
         pgettext_lazy('Product class field', 'has variants'), default=True)
     product_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='products_class', blank=True,
+        'ProductAttribute',
+        related_name='products_class',
+        blank=True,
         verbose_name=pgettext_lazy('Product class field',
                                    'product attributes'))
     variant_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_variants_class', blank=True,
+        'ProductAttribute',
+        related_name='product_variants_class',
+        blank=True,
         verbose_name=pgettext_lazy('Product class field', 'variant attributes'))
     is_shipping_required = models.BooleanField(
         pgettext_lazy('Product class field', 'is shipping required'),
@@ -118,26 +124,32 @@ class ProductManager(models.Manager):
 @python_2_unicode_compatible
 class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
-        ProductClass, related_name='products',
+        ProductClass,
+        related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'))
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
     categories = models.ManyToManyField(
-        Category, verbose_name=pgettext_lazy('Product field', 'categories'),
+        Category,
+        verbose_name=pgettext_lazy('Product field', 'categories'),
         related_name='products')
     price = PriceField(
         pgettext_lazy('Product field', 'price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=12, decimal_places=2)
     available_on = models.DateField(
-        pgettext_lazy('Product field', 'available on'), blank=True, null=True)
+        pgettext_lazy('Product field', 'available on'),
+        blank=True, null=True)
     is_published = models.BooleanField(
         pgettext_lazy('Product field', 'is published'), default=True)
     attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
                              default={})
     updated_at = models.DateTimeField(
-        pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
+        pgettext_lazy('Product field', 'updated at'),
+        auto_now=True,
+        null=True)
     is_featured = models.BooleanField(
         pgettext_lazy('Product field', 'is featured'), default=False)
 
@@ -219,20 +231,27 @@ class Product(models.Model, ItemRange):
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
+    product = models.ForeignKey(
+        Product,
+        related_name='variants')
     sku = models.CharField(
-        pgettext_lazy('Product variant field', 'SKU'), max_length=32, unique=True)
+        pgettext_lazy('Product variant field', 'SKU'),
+        max_length=32,
+        unique=True)
     name = models.CharField(
-        pgettext_lazy('Product variant field', 'variant name'), max_length=100,
+        pgettext_lazy('Product variant field', 'variant name'),
+        max_length=100,
         blank=True)
     price_override = PriceField(
         pgettext_lazy('Product variant field', 'price override'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=12, decimal_places=2,
         blank=True, null=True)
-    product = models.ForeignKey(Product, related_name='variants')
     attributes = HStoreField(
         pgettext_lazy('Product variant field', 'attributes'), default={})
     images = models.ManyToManyField(
-        'ProductImage', through='VariantImage',
+        'ProductImage',
+        through='VariantImage',
         verbose_name=pgettext_lazy('Product variant field', 'images'))
 
     class Meta:
@@ -321,20 +340,11 @@ class ProductVariant(models.Model, Item):
         if stock:
             return stock.cost_price
 
-
-# from django.db.models.signals import post_save
-#
-# def product_save_receiver(sender, instance, created, **kwargs):
-#     product = instance
-#     variations = product.variants.all()
-#     if variations.count() == 0:
-#         new_var = ProductVariant()
-#         new_var.product = product
-#         new_var.name = "Default"
-#         new_var.price = product.price
-#         new_var.save()
-#
-# post_save.connect(product_save_receiver, sender=Product)
+    def get_attributes(self):
+        attrs = []
+        for value, key in self.attributes.items():
+            attrs.extend(AttributeChoiceValue.objects.select_related('attribute').filter(pk=key).first().name)
+        return attrs
 
 
 @python_2_unicode_compatible
@@ -498,6 +508,9 @@ class ProductImage(models.Model):
         qs = self.get_ordering_queryset()
         qs.filter(order__gt=self.order).update(order=F('order') - 1)
         super(ProductImage, self).delete(*args, **kwargs)
+
+    def __str__(self):
+        return '{} - {}'.format(self.product.name, self.order)
 
 
 class VariantImage(models.Model):

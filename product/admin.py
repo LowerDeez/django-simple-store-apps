@@ -74,8 +74,17 @@ class VariantImageAdminInline(admin.TabularInline):
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
     inlines = [StockAdminInline, VariantImageAdminInline]
-    list_display = ['product',  'name', 'sku','attributes']
+    list_display = ['product',  'name', 'sku', 'show_attributes']
     form = VariantAttributeForm
+
+    def show_attributes(self, obj):
+        attrs = ''
+        for value, key in obj.attributes.items():
+            attrs += '{}: {}\n'.format(
+                ProductAttribute.objects.filter(pk=value).first(),
+                AttributeChoiceValue.objects.select_related('attribute').filter(pk=key).first()
+            )
+        return attrs
 
     def get_form(self, request, obj=None, **kwargs):
         # Proper kwargs are form, fields, exclude, formfield_callback
@@ -102,9 +111,13 @@ class ProductVariantAdmin(admin.ModelAdmin):
         if not change:
             product_id = request.GET.get('id')
             if product_id:
-                self.product = Product.objects.filter(id=product_id)
+                self.product = Product.objects.filter(id=product_id, product_class__has_variants=True)\
+                    .select_related('product_class')\
+                    .prefetch_related('categories')
             else:
-                self.product = Product.objects.all()
+                self.product = Product.objects.filter(product_class__has_variants=True) \
+                    .select_related('product_class') \
+                    .prefetch_related('categories')
             context['adminform'].form.fields['product'].queryset = self.product
         return super().render_change_form(request, context, add, change, form_url, obj)
 
@@ -135,13 +148,13 @@ class ProductClassAdmin(admin.ModelAdmin):
 
 
 class AttributeChoiceValueAdminInline(admin.TabularInline):
-    fields = ['name', 'slug', 'color']
+    fields = ['id', 'name', 'slug', 'color']
     prepopulated_fields = {"slug": ("name",)}
     model = AttributeChoiceValue
 
 
 @admin.register(ProductAttribute)
-class ProductAttribute(admin.ModelAdmin):
-    list_display = ('name', 'slug')
+class ProductAttributeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'slug')
     prepopulated_fields = {"slug": ("name",)}
     inlines = [AttributeChoiceValueAdminInline]

@@ -4,6 +4,6 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^add/(?P<class_pk>[0-9]+)/$',
+    url(r'^$',
         views.product_create, name='product-add'),
 ]
