@@ -1,11 +1,8 @@
-from django import forms
 from django.contrib import admin
-from django.forms.models import ModelChoiceIterator
 from django.shortcuts import redirect
-from django.utils.encoding import smart_text
 
 from .models import *
-from .forms import ProductForm, VariantAttributeForm
+from .admin_forms import ProductAdminForm, VariantAttributeAdminForm
 
 
 @admin.register(Category)
@@ -25,7 +22,7 @@ class ProductImageAdminInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    form = ProductForm
+    form = ProductAdminForm
     list_display = [f.name for f in Product._meta.fields]
     inlines = [ProductImageAdminInline]
 
@@ -75,7 +72,7 @@ class VariantImageAdminInline(admin.TabularInline):
 class ProductVariantAdmin(admin.ModelAdmin):
     inlines = [StockAdminInline, VariantImageAdminInline]
     list_display = ['product',  'name', 'sku', 'show_attributes']
-    form = VariantAttributeForm
+    form = VariantAttributeAdminForm
 
     def show_attributes(self, obj):
         attrs = ''

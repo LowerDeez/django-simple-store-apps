@@ -23,24 +23,38 @@ from versatileimagefield.fields import VersatileImageField, PPOIField
 
 # from ..discount.models import calculate_discounted_price
 # from ..search import index
-from .utils import *
+# from .utils import *
 
 
 @python_2_unicode_compatible
 class Category(MPTTModel):
+    """
+    Category model
+
+    Attributes:
+        name: category name
+        slug: category slug, using for beautiful urls
+        description: category description
+        parent: parent category
+        hidden: is category hidden
+    """
     name = models.CharField(
-        pgettext_lazy('Category field', 'name'), max_length=128)
+        pgettext_lazy('Category field', 'name'),
+        max_length=128)
     slug = models.SlugField(
-        pgettext_lazy('Category field', 'slug'), max_length=50)
+        pgettext_lazy('Category field', 'slug'),
+        max_length=128)
     description = models.TextField(
-        pgettext_lazy('Category field', 'description'), blank=True)
+        pgettext_lazy('Category field', 'description'),
+        blank=True)
     parent = models.ForeignKey(
         'self',
         null=True, blank=True,
         related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'))
     hidden = models.BooleanField(
-        pgettext_lazy('Category field', 'hidden'), default=False)
+        pgettext_lazy('Category field', 'hidden'),
+        default=False)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -77,10 +91,22 @@ class Category(MPTTModel):
 
 @python_2_unicode_compatible
 class ProductClass(models.Model):
+    """
+    Product Class Model
+
+    Attributes:
+        name: category name
+        has_variants: defines is product has variants
+        product_attributes: attributes for product
+        variant_attributes: attributes for product's variants
+        is_shipping_required: defines is shipping for product required
+    """
     name = models.CharField(
-        pgettext_lazy('Product class field', 'name'), max_length=128)
+        pgettext_lazy('Product class field', 'name'),
+        max_length=128)
     has_variants = models.BooleanField(
-        pgettext_lazy('Product class field', 'has variants'), default=True)
+        pgettext_lazy('Product class field', 'has variants'),
+        default=True)
     product_attributes = models.ManyToManyField(
         'ProductAttribute',
         related_name='products_class',
@@ -113,22 +139,43 @@ class ProductClass(models.Model):
 
 
 class ProductManager(models.Manager):
-
     def get_available_products(self):
+        """
+        returns available products
+        :return:
+        """
         today = datetime.date.today()
         return self.get_queryset().filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True)).filter(
-            is_published=True)
+            Q(available_on__lte=today) |
+            Q(available_on__isnull=True))\
+            .filter(is_published=True)
 
 
 @python_2_unicode_compatible
 class Product(models.Model, ItemRange):
+    """
+    Product Model
+
+    Attributes:
+        product_class: class of product, which defines product attributes
+        name: product name
+        description: product description
+        categories: product categories
+        price: product price
+        available_on: date to which product is available
+        is_published: is product published
+        attributes: product attributes
+        updated_at: date when product was updated
+        is_featured: is product displays on main page
+
+    """
     product_class = models.ForeignKey(
         ProductClass,
         related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'))
     name = models.CharField(
-        pgettext_lazy('Product field', 'name'), max_length=128)
+        pgettext_lazy('Product field', 'name'),
+        max_length=128)
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
     categories = models.ManyToManyField(
@@ -141,9 +188,11 @@ class Product(models.Model, ItemRange):
         max_digits=12, decimal_places=2)
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'),
-        blank=True, null=True)
+        blank=True,
+        null=True)
     is_published = models.BooleanField(
-        pgettext_lazy('Product field', 'is published'), default=True)
+        pgettext_lazy('Product field', 'is published'),
+        default=True)
     attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
                              default={})
     updated_at = models.DateTimeField(
@@ -184,6 +233,10 @@ class Product(models.Model, ItemRange):
             kwargs={'slug': self.get_slug(), 'product_id': self.id})
 
     def get_slug(self):
+        """
+        Create slug from name field
+        :return:
+        """
         return slugify(smart_text(unidecode(self.name)))
 
     def is_in_stock(self):
