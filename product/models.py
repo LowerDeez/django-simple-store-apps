@@ -404,13 +404,13 @@ class Stock(models.Model):
 
 @python_2_unicode_compatible
 class ProductAttribute(models.Model):
-    slug = models.SlugField(
-        pgettext_lazy('Product attribute field', 'internal name'),
-        max_length=50, unique=True)
     name = models.CharField(
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
-
+    slug = models.SlugField(
+        pgettext_lazy('Product attribute field', 'internal name'),
+        max_length=50, unique=True)
+    
     class Meta:
         ordering = ('slug', )
         verbose_name = pgettext_lazy('Product attribute model', 'product attribute')
