@@ -6,8 +6,7 @@ from django import forms
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
-
-from ..cart.forms import AddToCartForm
+from .models import Product
 
 
 class VariantChoiceField(forms.ModelChoiceField):
@@ -23,14 +22,18 @@ class VariantChoiceField(forms.ModelChoiceField):
         return label
 
 
-class ProductForm(AddToCartForm):
+class ProductForm(forms.ModelForm):
     variant = VariantChoiceField(queryset=None)
 
-    def __init__(self, *args, **kwargs):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def __init__(self, product, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
+        self.product = product
         variant_field = self.fields['variant']
         variant_field.queryset = self.product.variants
-        variant_field.discounts = self.cart.discounts
         variant_field.empty_label = None
         images_map = {variant.pk: [vi.image.image.url
                                    for vi in variant.variant_images.all()]

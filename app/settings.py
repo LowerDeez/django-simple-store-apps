@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'mptt',
     'django_prices',
     'versatileimagefield',
+    'django_filters',
 
     'profiles',
     'products',

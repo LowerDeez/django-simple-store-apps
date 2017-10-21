@@ -83,7 +83,7 @@ class Category(MPTTModel):
         if not ancestors:
             ancestors = self.get_ancestors()
         nodes = [node for node in ancestors] + [self]
-        return '/'.join([node.slug for node in nodes])
+        return '/'.join([smart_text(node.slug) for node in nodes])
 
     def set_hidden_descendants(self, hidden):
         self.get_descendants().update(hidden=hidden)
