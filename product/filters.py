@@ -88,11 +88,6 @@ class ProductFilter(FilterSet):
             )
 
 
-def get_sort_by_choices(filter):
-    return [(choice[0], choice[1].lower()) for choice in
-            filter.filters['sort_by'].field.choices[1::2]]
-
-
 def get_now_sorted_by(filter):
     sort_by = filter.form.cleaned_data.get('sort_by')
     if sort_by:

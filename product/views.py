@@ -5,7 +5,7 @@ import datetime
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, redirect
 
-from .filters import (get_now_sorted_by, get_sort_by_choices,
+from .filters import (get_now_sorted_by,
                       ProductFilter)
 from .models import Category, Product, AttributeChoiceValue, ProductVariant
 from .utils import (
@@ -125,23 +125,12 @@ def get_paginator_items(items, paginate_by, page_number):
 
 def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
-    actual_path = category.get_full_path()
-    if actual_path != path:
-        return redirect('product:category', permanent=True, path=actual_path,
-                        category_id=category_id)
     products = (products_with_details(user=request.user)
                 .filter(categories__name=category)
                 .order_by('name'))
     product_filter = ProductFilter(
         request.GET, queryset=products, category=category)
-    products_paginated = get_paginator_items(
-        product_filter.qs, 10, request.GET.get('page'))
-    products_and_availability = list(products_with_details(user=request.user))
-    now_sorted_by = get_now_sorted_by(product_filter)
-    ctx = {'category': category, 'filter': product_filter,
-           'products': products_and_availability,
-           'products_paginated': products_paginated,
-           'sort_by_choices': get_sort_by_choices(product_filter),
-           'now_sorted_by': now_sorted_by,
-           'is_descending': now_sorted_by.startswith('-')}
+
+    ctx = {'filter': product_filter}
+
     return TemplateResponse(request, 'category/index.html', ctx)

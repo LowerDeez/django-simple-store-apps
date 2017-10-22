@@ -128,7 +128,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         print(ProductVariant.objects.filter(attributes=obj.attributes))
         if not obj.id:
-            obj.product = self.product.first()
+            # obj.product = self.product.first()
             obj.save()
             obj.sku = obj.id
         return super().save_model(request, obj, form, change)

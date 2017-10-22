@@ -23,7 +23,7 @@ class Order(models.Model):
     uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
     slug = models.UUIDField(default=uuid4, unique=True, editable=False)
     # cart = models.ForeignKey(Cart, on_delete=models.DO_NOTHING)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='checkouts')
     full_name = models.CharField(max_length=120)
     email = models.EmailField()
     phone = models.CharField(max_length=120, null=True, blank=True)
