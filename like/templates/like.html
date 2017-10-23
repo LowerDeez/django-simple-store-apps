@@ -1,0 +1,20 @@
+{% load i18n %}
+{% if can_like %}
+    <div class="like-widget">
+
+        <button type="button"
+                class="like-button btn btn-outline-success {% if liked %} active {% endif %} {{ like_class }}"
+                data-href="{{ like_url }}">
+        {% if liked %}
+            <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+            {{ like_text }}
+        {% else %}
+            <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>
+            {{ like_text }}
+        {% endif %}
+        </button>
+
+        <span class="like-badge badge" style="color:black">{{ like_count }} {{ counts_text }}</span>
+
+    </div>
+{% endif %}

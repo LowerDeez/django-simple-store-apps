@@ -13,6 +13,8 @@ urlpatterns = [
 
     url(r'^search/', include("search.urls", namespace='search')),
 
+    url(r'^like/', include("like.urls", namespace='likes')),
+
     url(r'^', include('products.urls', namespace='products')),
 
 ]

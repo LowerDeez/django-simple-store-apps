@@ -68,6 +68,65 @@
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
+<script>
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Cross Site Request Forgery protection~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Cross Site Request Forgery protection~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</script>
+<script>
+    $(document).ready(function() {
+        $('.like-button').click(function(e){
+            e.preventDefault();
+            var count = $('.like-badge');
+
+            $.ajax({
+               method: 'POST',
+               data: $(this).serialize(),
+               url: $(this).data('href'),
+               success: function(data) {
+                   console.log(data);
+                   if (data['liked'])
+                       $('.like-button').html('<i class="fa fa-thumbs-up" aria-hidden="true"></i> ' + data['like_text']);
+                   else
+                       $('.like-button').html('<i class="fa fa-thumbs-o-up" aria-hidden="true"></i> ' + data['like_text']);
+                   count.text(data['likes_count'] + " " + data['counts_text'])
+               },
+               error: function(data) {
+                   console.log(data);
+               }
+            })
+       })
+    });
+</script>
 {% block scripts %}{% endblock %}
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

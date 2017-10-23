@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 
 {% load thumbnail %}
+{% load like_tags %}
 
 {% block content %}
     <div class="container">
@@ -27,6 +28,9 @@
 
                 </section>
             </article>
+        </div>
+        <div class="row">
+            {% likes_widget request.user object %}
         </div>
     </div>
 {% endblock %}
