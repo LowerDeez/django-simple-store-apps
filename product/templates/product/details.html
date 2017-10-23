@@ -15,10 +15,13 @@
             <h1 class="product__info__name">
                 {{ product }}
             </h1>
+            {% for cat in product.categories.all %}
+                <a href="{{ cat.get_absolute_url }}">{{ cat }}</a>
+            {% endfor %}
 
             {% if user.is_staff %}
                 <p>
-                    <a href="admin_url">
+                    <a href="{% url 'admin:product_product_change' product.id %}">
                     {% trans "Edit in dashboard" context "Product details link text" %}
                     </a>
                 </p>
