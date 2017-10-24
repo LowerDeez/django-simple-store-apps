@@ -1,0 +1,7 @@
+1) add 'like' to INSTALLED_APPS
+2) add in project urls.py:
+  url(r'^like/', include("like.urls", namespace='likes')),
+3) In template
+  {% load like_tags %}
+  ...
+  {% likes_widget request.user object %}
