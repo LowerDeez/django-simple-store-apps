@@ -4,6 +4,7 @@ from django.views.generic import DetailView, TemplateView
 from cart.utils import get_cart
 from .forms import CustomerOrderForm, ShippingAddressForm
 from .models.order import Order
+from .models.address import Address
 
 
 class CheckoutOrderCreateView(TemplateView):
@@ -19,6 +20,9 @@ class CheckoutOrderCreateView(TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        # you can use already exists address if user is authenticated
+        # and get for full name, email and phone data from authenticated user
+        print(request.POST.get('address_id'))
         if not all(form.is_valid() for form in self.forms.values()):
             return self.get(request, *args, **kwargs)
 
@@ -32,6 +36,7 @@ class CheckoutOrderCreateView(TemplateView):
             **super().get_context_data(**kwargs),
             **self.forms,
             'cart': self.cart,
+            'addresses': Address.objects.all()
         }
 
     def get_order_forms(self):

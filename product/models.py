@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
+from django.db.models.signals import post_save
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
@@ -282,6 +283,19 @@ class Product(models.Model, ItemRange):
         return PriceRange(min(grosses), max(grosses))
 
 
+# creating default variation for each product
+def product_save_receiver(sender, instance, created, **kwargs):
+    product = instance
+    variations = product.variants.all()
+    if variations.count() == 0:
+        new_var = ProductVariant()
+        new_var.product = product
+        new_var.name = 'Default'
+        new_var.sku = '{} - {} - default'.format(product.id, product.name)
+        new_var.save()
+post_save.connect(product_save_receiver, sender=Product)
+
+
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
     product = models.ForeignKey(
@@ -396,7 +410,10 @@ class ProductVariant(models.Model, Item):
     def get_attributes(self):
         attrs = []
         for value, key in self.attributes.items():
-            attrs.extend(AttributeChoiceValue.objects.select_related('attribute').filter(pk=key).first().name)
+            try:
+                attrs.extend(AttributeChoiceValue.objects.select_related('attribute').filter(pk=key).first().name)
+            except AttributeError:
+                continue
         return attrs
 
 

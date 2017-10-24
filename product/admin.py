@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.shortcuts import redirect
-
+from django.urls import resolve
 from .models import *
 from .admin_forms import ProductAdminForm, VariantAttributeAdminForm
 
@@ -66,6 +66,16 @@ class StockAdminInline(admin.TabularInline):
 
 class VariantImageAdminInline(admin.TabularInline):
     model = VariantImage
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        """enable ordering drop-down alphabetically"""
+        if db_field.name == 'image':
+            resolved = resolve(request.path_info)
+            if resolved.args:
+                parent_object = self.parent_model.objects.filter(pk=resolved.args[0]).first()
+                if parent_object:
+                    kwargs['queryset'] = parent_object.product.images.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(ProductVariant)

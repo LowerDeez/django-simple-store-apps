@@ -44,7 +44,20 @@
                 </tr>
                 {% endfor %}
             </table>
+            <h2>Variants:</h2>
+            <form action="" method="get">
+                {% for var in product.variants.all %}
+                    {% for attr in var.get_attributes %}
+                        <input class="category-checkbox" id="category-check-{{ var.id }}"
+                               type="radio" name="variants" value="{{ var.id }}">&nbsp;
+                        <span>{{ attr }}</span>&nbsp;
+                    {% endfor %}
+                {% endfor %}
+                <button type="submit" class="btn btn-success">Checkout</button>
+            </form>
+            <br>
+            <a href="{% url 'product:category' path='clothes' category_id=1 %}">Go</a>
         </div>
     </div>
-    <a href="{% url 'product:category' path='clothes' category_id=1 %}">Go</a>
+
 {% endblock content %}
