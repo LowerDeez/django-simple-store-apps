@@ -149,8 +149,8 @@ class ProductVariantAdmin(admin.ModelAdmin):
     # def has_add_permission(self, request):
     #     return False
 
-@admin.register(ProductClass)
-class ProductClassAdmin(admin.ModelAdmin):
+@admin.register(ProductType)
+class ProductTypeAdmin(admin.ModelAdmin):
     list_display = ('name', )
 
 

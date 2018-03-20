@@ -6,7 +6,7 @@ from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, redirect
 
 from .filters import (get_now_sorted_by,
-                      ProductFilter)
+                      ProductFilter, ProductCategoryFilter)
 from .models import Category, Product, AttributeChoiceValue, ProductVariant
 from .utils import (
     products_with_details,
@@ -16,7 +16,10 @@ from .utils import (
 from django.template.response import TemplateResponse
 
 
-def product_create(request):
+def test_view(request):
+    """
+    test view
+    """
     product = Product.objects.first()
     attr_choice = AttributeChoiceValue.objects.filter(slug='red').first()
     print(attr_choice)
@@ -125,10 +128,18 @@ def get_paginator_items(items, paginate_by, page_number):
 
 def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
-    products = (products_with_details(user=request.user)
-                .filter(categories__name=category)
-                .order_by('name'))
-    product_filter = ProductFilter(
+    print(category)
+    actual_path = category.get_full_path()
+    if actual_path != path:
+        return redirect('product:category', permanent=True, path=actual_path,
+                        category_id=category_id)
+    # Check for subcategories
+    categories = category.get_descendants(include_self=True)
+    print(categories)
+    products = products_with_details(user=request.user).filter(
+        category__in=categories).order_by('name')
+    print(products)
+    product_filter = ProductCategoryFilter(
         request.GET, queryset=products, category=category)
 
     ctx = {'filter': product_filter}

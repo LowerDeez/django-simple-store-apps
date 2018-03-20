@@ -39,23 +39,11 @@ def products_with_details(user):
     """
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'categories',
-        'images',
-        'variants__stock',
-        'variants__variant_images__image',
-        'attributes__values',
-        'product_class__variant_attributes__values',
-        'product_class__product_attributes__values')
+        'category', 'images', 'variants__stock',
+        'variants__variant_images__image', 'attributes__values',
+        'product_type__variant_attributes__values',
+        'product_type__product_attributes__values')
     return products
-
-
-def products_for_api(user):
-    products = products_visible_to_user(user)
-    return products.prefetch_related(
-        'images',
-        'categories',
-        'variants',
-        'variants__stock')
 
 
 def products_for_homepage():
@@ -76,6 +64,15 @@ def get_product_images(product):
     return list(product.images.all())
 
 
+def products_for_api(user):
+    products = products_visible_to_user(user)
+    return products.prefetch_related(
+        'images',
+        'categories',
+        'variants',
+        'variants__stock')
+
+
 # def handle_cart_form(request, product, create_cart=False):
 #     if create_cart:
 #         cart = get_or_create_cart_from_request(request)
@@ -94,7 +91,7 @@ def products_for_cart(user):
     :return: Product queryset
     """
     products = products_visible_to_user(user)
-    products = products.prefetch_related('variants', 'variants__variant_images__image')
+    products = products.prefetch_related('variants__variant_images__image')
     return products
 
 
