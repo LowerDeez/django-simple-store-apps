@@ -89,10 +89,10 @@ class ProductAdminForm(_AttributeBaseForm, forms.ModelForm):
         forms.ModelForm.__init__(self, *args, **kwargs)
 
         # if product already has product class, get from it attributes for product    
-        if self.instance.product_class_id:
-            product_class = self.instance.product_class
-            self.available_attrs = product_class.product_attributes.all().prefetch_related('values')
-            # prepare form fields for product_class attributes
+        if self.instance.product_type_id:
+            product_type = self.instance.product_type
+            self.available_attrs = product_type.product_attributes.all().prefetch_related('values')
+            # prepare form fields for product_type attributes
             _AttributeBaseForm.__init__(self, *args, **kwargs)
 
 
@@ -107,8 +107,8 @@ class VariantAttributeAdminForm(_AttributeBaseForm, forms.ModelForm):
         forms.ModelForm.__init__(self, *args, **kwargs)
 
         if self.instance.product_id:
-            product_class = self.instance.product.product_class
-            self.available_attrs = product_class.variant_attributes.all().prefetch_related('values')
+            product_type = self.instance.product.product_type
+            self.available_attrs = product_type.variant_attributes.all().prefetch_related('values')
             _AttributeBaseForm.__init__(self, *args, **kwargs)
 
     

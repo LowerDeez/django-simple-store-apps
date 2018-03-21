@@ -23,17 +23,18 @@ class ProductImageAdminInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = [f.name for f in Product._meta.fields]
+    list_display = ['name', 'product_type', 'category', 'price', 'available_on', 'is_published', 'is_featured', 'dispalay_attributes']
     inlines = [ProductImageAdminInline]
 
     def get_form(self, request, obj=None, **kwargs):
         # Proper kwargs are form, fields, exclude, formfield_callback
         if not obj:  # obj is None, so this is an object add page, and we display only product class
-            kwargs['fields'] = ['product_class', ]
+            kwargs['fields'] = ['product_type', 'category']
             self.inlines = []
         else: # if obj - this a object change page, and we display all fields without product class and attributes (HStore field), but with rendered attributse fields
             kwargs['fields'] = '__all__'
             self.exclude = ['attributes']
+            self.readonly_fields = ['product_type', 'category']
             self.inlines = [ProductImageAdminInline]
         return super().get_form(request, obj, **kwargs)
 
@@ -118,12 +119,12 @@ class ProductVariantAdmin(admin.ModelAdmin):
         if not change:
             product_id = request.GET.get('id')
             if product_id:
-                self.product = Product.objects.filter(id=product_id, product_class__has_variants=True)\
-                    .select_related('product_class')\
+                self.product = Product.objects.filter(id=product_id, product_type__has_variants=True)\
+                    .select_related('product_type')\
                     .prefetch_related('categories')
             else:
-                self.product = Product.objects.filter(product_class__has_variants=True) \
-                    .select_related('product_class') \
+                self.product = Product.objects.filter(product_type__has_variants=True) \
+                    .select_related('product_type') \
                     .prefetch_related('categories')
             context['adminform'].form.fields['product'].queryset = self.product
         return super().render_change_form(request, context, add, change, form_url, obj)

@@ -136,7 +136,7 @@ def get_product_attributes_data(product):
     :param product:
     :return:
     """
-    attributes = product.product_class.product_attributes.all()
+    attributes = product.product_type.product_attributes.all()
     attributes_map = {attribute.pk: attribute for attribute in attributes}
     values_map = get_attributes_display_map(product, attributes)
     return {attributes_map.get(attr_pk): value_obj
@@ -181,7 +181,7 @@ def get_variant_url_from_product(product, attributes):
 def get_variant_url(variant):
     attributes = {}
     values = {}
-    for attribute in variant.product.product_class.variant_attributes.all():
+    for attribute in variant.product.product_type.variant_attributes.all():
         attributes[str(attribute.pk)] = attribute
         for value in attribute.values.all():
             values[str(value.pk)] = value
@@ -197,7 +197,7 @@ def get_product_availability_status(product):
         variant.is_in_stock() for variant in product.variants.all())
     is_in_stock = any(
         variant.is_in_stock() for variant in product.variants.all())
-    requires_variants = product.product_class.has_variants
+    requires_variants = product.product_type.has_variants
 
     if not product.is_published:
         return ProductAvailabilityStatus.NOT_PUBLISHED

@@ -205,6 +205,31 @@ class Product(models.Model, ItemRange):
 
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
+    
+    def get_attributes(self):
+        attrs = []
+        for value, key in self.attributes.items():
+            try:
+                attrs.append(AttributeChoiceValue.objects.select_related('attribute').filter(pk=key).first().name)
+            except AttributeError:
+                continue
+        return attrs
+    
+    def dispalay_attributes(self):
+        # ProductAttribute
+        text_value = ''
+        for value, key in self.attributes.items():
+            try:
+                attribute = ProductAttribute.objects.prefetch_related('values').filter(pk=value).first().name
+                attribute_choice = AttributeChoiceValue.objects.select_related('attribute').filter(pk=key).first().name
+                text_value += f'{attribute}: {attribute_choice}<br>'
+            except AttributeError as e:
+                continue
+        print(value)
+        return text_value
+    dispalay_attributes.short_description = 'Attributes display'
+    dispalay_attributes.allow_tags = True
+
 
     # def get_price_range(self, discounts=None, **kwargs):
     #     if not self.variants.exists():
@@ -279,7 +304,7 @@ class ProductVariant(models.Model, Item):
             'unit_price': str(self.get_price_per_item().gross)}
 
     def is_shipping_required(self):
-        return self.product.product_class.is_shipping_required
+        return self.product.product_type.is_shipping_required
 
     def is_in_stock(self):
         return any(
@@ -293,7 +318,7 @@ class ProductVariant(models.Model, Item):
 
     # def display_variant(self, attributes=None):
     #     if attributes is None:
-    #         attributes = self.product.product_class.variant_attributes.all()
+    #         attributes = self.product.product_type.variant_attributes.all()
     #     values = get_attributes_display_map(self, attributes)
     #     if values:
     #         return ', '.join(
