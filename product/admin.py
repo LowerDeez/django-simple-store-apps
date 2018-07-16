@@ -120,12 +120,10 @@ class ProductVariantAdmin(admin.ModelAdmin):
             product_id = request.GET.get('id')
             if product_id:
                 self.product = Product.objects.filter(id=product_id, product_type__has_variants=True)\
-                    .select_related('product_type')\
-                    .prefetch_related('categories')
+                    .select_related('product_type', 'category')
             else:
                 self.product = Product.objects.filter(product_type__has_variants=True) \
-                    .select_related('product_type') \
-                    .prefetch_related('categories')
+                    .select_related('product_type', 'category')
             context['adminform'].form.fields['product'].queryset = self.product
         return super().render_change_form(request, context, add, change, form_url, obj)
 
